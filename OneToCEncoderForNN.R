@@ -5,9 +5,10 @@
 #       [1] https://www.kaggle.com/c/walmart-recruiting-store-sales-forecasting
 #       [2] How To Standardize Data for Neural Networks: http://visualstudiomagazine.com/articles/2014/01/01/how-to-standardize-data-for-neural-networks.aspx
 #
-# Preprocessing before applying Neural network model
+# Preprocessing before applying Neural network model and Support Vector machines model - Update(2014/12/01)
 #  1. One to C Dummy Encoding on Fatoral data, Since Neural network only accepts numeric data
-#  2. Min-max normalization to help the neural model to converse well, and to avoid the model from being divergent
+#     Support vector machines also only accepts numeric data
+#  2. Min-max normalization on features to help the neural models and SVM models to converse well, and to avoid the model from being divergent
 #
 # Input file : stores.csv.csv
 #              train.csv
@@ -25,19 +26,19 @@
 
 
 #rm(list=ls())
-setwd(".")
+setwd("~/Documents/workspace/Walmart-Forecasting-NN")
 
 # 1 to C encoding for python Neural network library
 stores = read.csv("stores.csv", header=TRUE)
 train = read.csv("train.csv", header=TRUE)
 test = read.csv("test.csv", header = TRUE)
 features = read.csv("features_complete.csv", header = TRUE)
-sample = read.csv("sampleSubmission.csv", header=TRUE)
+#sample = read.csv("sampleSubmission.csv", header=TRUE)
 
 features$Date <- as.Date(features$Date)
 train$Date <- as.Date(train$Date)
 test$Date <- as.Date(test$Date)
-
+train$Weekly_Sales[train$Weekly_Sales<0]
 library(dplyr)
 library(lubridate)
 features_cor <- merge(features, stores, by="Store", all.x=T)
@@ -64,40 +65,40 @@ train_with_features_sorted$IsHoliday.x <- ifelse(train_with_features_sorted$IsHo
 
 # Encoded Type data
 # Type A
-# 0.9  0.1  0.1
+# 0.99  0.01  0.01
 # Type B
-# 0.1  0.9  0.1
+# 0.01  0.99  0.01
 # Type C
-# 0.1  0.1  0.9
+# 0.01  0.01  0.99
 train_with_features_Type <- data.frame(model.matrix(~factor(train_with_features_sorted$Type)-1))
-train_with_features_Type[train_with_features_Type == 1] <- 0.9
-train_with_features_Type[train_with_features_Type == 0] <- 0.1
+train_with_features_Type[train_with_features_Type == 1] <- 0.99
+train_with_features_Type[train_with_features_Type == 0] <- 0.01
 
 
 # Encoded Store 1 data
-# 0.9  0.1  .......  0.1
+# 0.99  0.01  .......  0.01
 # Encoded Store 2 data
-# 0.1  0.9  .......  0.1
+# 0.01  0.99  .......  0.01
 #..........
-# Encoded Store 45 data
-# 0.1  0.1  .......  0.9
+# Encded Store 45 data
+# 0.01  0.01  .......  0.99
 train_with_features_Store <- data.frame(model.matrix(~factor(train_with_features_sorted$Store)-1))
-train_with_features_Store[train_with_features_Store == 1] <- 0.9
-train_with_features_Store[train_with_features_Store == 0] <- 0.1
+train_with_features_Store[train_with_features_Store == 1] <- 0.99
+train_with_features_Store[train_with_features_Store == 0] <- 0.01
 
 
 # Encoded Deaprtment 1 data
-# 0.9  0.1  .......  0.1
+# 0.99  0.01  .......  0.01
 # Encoded Deaprtment 2 data
-# 0.1  0.9  .......  0.1
+# 0.01  0.99  .......  0.01
 #..........
 # Encoded Deaprtment 99 data
-# 0.1  0.1  .......  0.9
+# 0.01  0.01  .......  0.99
 #
 # Enven if a store does not have department 99 data, this code always generates 99 columns
 train_with_features_Dept<-NULL
 for(i in 1:99){
-  train_with_features_Dept <- data.frame(cbind(train_with_features_Dept, ifelse(train_with_features_sorted$Dept==i, 0.9, 0.1)))
+  train_with_features_Dept <- data.frame(cbind(train_with_features_Dept, ifelse(train_with_features_sorted$Dept==i, 0.99, 0.01)))
 }
 
 
@@ -120,16 +121,16 @@ test_with_features_sorted$IsHoliday.y <- NULL
 test_with_features_sorted$IsHoliday.x <- ifelse(test_with_features_sorted$IsHoliday.x, 1, -1)
 
 test_with_features_Type <- data.frame(model.matrix(~factor(test_with_features_sorted$Type)-1))
-test_with_features_Type[test_with_features_Type == 1] <- 0.9
-test_with_features_Type[test_with_features_Type == 0] <- 0.1
+test_with_features_Type[test_with_features_Type == 1] <- 0.99
+test_with_features_Type[test_with_features_Type == 0] <- 0.01
 
 test_with_features_Store <- data.frame(model.matrix(~factor(test_with_features_sorted$Store)-1))
-test_with_features_Store[test_with_features_Store == 1] <- 0.9
-test_with_features_Store[test_with_features_Store == 0] <- 0.1
+test_with_features_Store[test_with_features_Store == 1] <- 0.99
+test_with_features_Store[test_with_features_Store == 0] <- 0.01
 
 test_with_features_Dept<-NULL
 for(i in 1:99){
-  test_with_features_Dept <- data.frame(cbind(test_with_features_Dept ,ifelse(test_with_features_sorted$Dept==i, 0.9, 0.1)))
+  test_with_features_Dept <- data.frame(cbind(test_with_features_Dept ,ifelse(test_with_features_sorted$Dept==i, 0.99, 0.01)))
 }
 
 test_cat_Type_Store_Dept <- cbind(test_with_features_Type, test_with_features_Store, test_with_features_Dept)
@@ -160,6 +161,7 @@ test_with_features_sorted$Year <- year(test_with_features_sorted$Date)-2009
 train_with_features_sorted$Week <- week(train_with_features_sorted$Date)
 test_with_features_sorted$Week <- week(test_with_features_sorted$Date)
 colnames(train_with_features_sorted)
+
 # [1] "Store"        "Date"         "Dept"         "IsHoliday.x"  "Temperature" 
 # [6] "Fuel_Price"   "MarkDown1"    "MarkDown2"    "MarkDown3"    "MarkDown4"   
 # [11] "MarkDown5"    "CPI"          "Unemployment" "Type"         "Size"        
@@ -266,20 +268,20 @@ min(x_train4py[,-1:-2])  # 0 <- Min-Max normalization success.
 max(x_train4py[,-1:-2])  # 1
 
 # Encoded Week 1 data
-# 0.9  0.1  .......  0.1
+# 0.99  0.01  .......  0.01
 # Encoded Week 2 data
-# 0.1  0.9  .......  0.1
+# 0.01  0.99  .......  0.01
 #..........
 # Encoded Week 53 data
-# 0.1  0.1  .......  0.9
+# 0.01  0.01  .......  0.99
 train_with_features_Week<-NULL
 for(i in 1:53){
-  train_with_features_Week <- data.frame(cbind(train_with_features_Week ,ifelse(train_with_features_sorted$Week==i, 0.9, 0.1)))
+  train_with_features_Week <- data.frame(cbind(train_with_features_Week ,ifelse(train_with_features_sorted$Week==i, 0.99, 0.01)))
 }
 
 test_with_features_Week<-NULL
 for(i in 1:53){
-  test_with_features_Week <- data.frame(cbind(test_with_features_Week ,ifelse(test_with_features_sorted$Week==i, 0.9, 0.1)))
+  test_with_features_Week <- data.frame(cbind(test_with_features_Week ,ifelse(test_with_features_sorted$Week==i, 0.99, 0.01)))
 }
 
 # Binds all data frames
@@ -299,6 +301,7 @@ sum(sort(unique(data4py$Dept)) != sort(unique(data4py_test$Dept)))
 
 current_wd <- getwd()
 setwd('./inputfiles')
+colnames(data4py_Deptx)
 
 for(i in unique(data4py$Dept)){
   filename = paste('train_data_with_dept', i, '_for_python.csv', sep="")

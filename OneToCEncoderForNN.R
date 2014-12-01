@@ -5,9 +5,10 @@
 #       [1] https://www.kaggle.com/c/walmart-recruiting-store-sales-forecasting
 #       [2] How To Standardize Data for Neural Networks: http://visualstudiomagazine.com/articles/2014/01/01/how-to-standardize-data-for-neural-networks.aspx
 #
-# Preprocessing before applying Neural network model
+# Preprocessing before applying Neural network model and Support Vector machines model - Update(2014/12/01)
 #  1. One to C Dummy Encoding on Fatoral data, Since Neural network only accepts numeric data
-#  2. Min-max normalization to help the neural model to converse well, and to avoid the model from being divergent
+#     Support vector machines also only accepts numeric data
+#  2. Min-max normalization on features to help the neural models and SVM models to converse well, and to avoid the model from being divergent
 #
 # Input file : stores.csv.csv
 #              train.csv
@@ -64,35 +65,35 @@ train_with_features_sorted$IsHoliday.x <- ifelse(train_with_features_sorted$IsHo
 
 # Encoded Type data
 # Type A
-# 0.9  0.1  0.1
+# 0.99  0.01  0.01
 # Type B
-# 0.1  0.9  0.1
+# 0.01  0.99  0.01
 # Type C
-# 0.1  0.1  0.9
+# 0.01  0.01  0.99
 train_with_features_Type <- data.frame(model.matrix(~factor(train_with_features_sorted$Type)-1))
 train_with_features_Type[train_with_features_Type == 1] <- 0.99
 train_with_features_Type[train_with_features_Type == 0] <- 0.01
 
 
 # Encoded Store 1 data
-# 0.9  0.1  .......  0.1
+# 0.99  0.01  .......  0.01
 # Encoded Store 2 data
-# 0.1  0.9  .......  0.1
+# 0.01  0.99  .......  0.01
 #..........
-# Encoded Store 45 data
-# 0.1  0.1  .......  0.9
+# Encded Store 45 data
+# 0.01  0.01  .......  0.99
 train_with_features_Store <- data.frame(model.matrix(~factor(train_with_features_sorted$Store)-1))
 train_with_features_Store[train_with_features_Store == 1] <- 0.99
 train_with_features_Store[train_with_features_Store == 0] <- 0.01
 
 
 # Encoded Deaprtment 1 data
-# 0.9  0.1  .......  0.1
+# 0.99  0.01  .......  0.01
 # Encoded Deaprtment 2 data
-# 0.1  0.9  .......  0.1
+# 0.01  0.99  .......  0.01
 #..........
 # Encoded Deaprtment 99 data
-# 0.1  0.1  .......  0.9
+# 0.01  0.01  .......  0.99
 #
 # Enven if a store does not have department 99 data, this code always generates 99 columns
 train_with_features_Dept<-NULL
@@ -267,12 +268,12 @@ min(x_train4py[,-1:-2])  # 0 <- Min-Max normalization success.
 max(x_train4py[,-1:-2])  # 1
 
 # Encoded Week 1 data
-# 0.9  0.1  .......  0.1
+# 0.99  0.01  .......  0.01
 # Encoded Week 2 data
-# 0.1  0.9  .......  0.1
+# 0.01  0.99  .......  0.01
 #..........
 # Encoded Week 53 data
-# 0.1  0.1  .......  0.9
+# 0.01  0.01  .......  0.99
 train_with_features_Week<-NULL
 for(i in 1:53){
   train_with_features_Week <- data.frame(cbind(train_with_features_Week ,ifelse(train_with_features_sorted$Week==i, 0.99, 0.01)))

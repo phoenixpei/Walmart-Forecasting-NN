@@ -26,13 +26,13 @@ test = read.csv("test.csv", header = TRUE)
 library(ggplot2)
 
 err_rate <- list()
-s
+
 #Choose the range of departments to plot
 dept_from = 1
-dept_to = 1
+dept_to = 99
 
 for(dept in dept_from:dept_to){
-  filename_for_trainingerr = paste('nn_dept', dept, '_epoch500_info_train.txt', sep="")
+  filename_for_trainingerr = paste('result_dept', dept, '_epoch500_info_train.txt', sep="")
   filename_for_cverr = paste('nn_dept', dept, '_epoch500_info_cv.txt', sep="")
   
   err_rate[[dept]] =  data.frame(train_err = as.vector(t(read.table(filename_for_trainingerr, sep=",", nrows=1))),
@@ -46,9 +46,14 @@ for(dept in dept_from:dept_to){
 }
 
 
+
+setwd(".")
 total_result <- list()
 test_result <- list()
 currend_wd <- getwd()
+
+
+
 for(dept in dept_from:dept_to){
   filename_for_total_result = paste(currend_wd, '/outputfiles/walmart_sales_dept', dept, '_train_test_result.csv', sep="")
   
@@ -67,6 +72,8 @@ for(dept in dept_from:dept_to){
   for(i in unique(test$Store[test$Dept==dept])){
     train_complete_deptX = train[train$Dept==dept,]
     train_complete_deptX$result <- total_result[[dept]][1:nrow(train[train$Dept==dept,])]
+
+
     test_complete_deptX <- test[test$Dept==dept,]
     test_complete_deptX$Weekly_Sales <- test_result[[dept]]
     
@@ -89,7 +96,9 @@ for(dept in dept_from:dept_to){
     }
     lines(prediction, col='red')
   }
+  
 }
+
 
 
 

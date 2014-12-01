@@ -27,5 +27,16 @@ FitNNforWalmartCrossDeptAnimation.py
 Shows animation of nueral model
 
 
+FitSVMforWalmartCrossDept.py
+Fits support vector machines model to data set
+Dumps output files into './scikitSVM'
+
+
 VisualizeDeptResults.R
 Plots results from files in './ouputfiles'
+
+
+TSVFormatterForJSApp.R
+File formatter from files in './scikitSVM'
+Dumps output files into './visual_data'
+The output files are visualized by the app: https://github.com/SsureyMoon/App-LineChart-SalesForcasting
